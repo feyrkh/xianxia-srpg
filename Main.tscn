@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://bdt6y8tgem8ds"]
+
+[ext_resource type="Script" uid="uid://cshn5oxlxtv2a" path="res://Main.gd" id="1_glv2v"]
+[ext_resource type="PackedScene" uid="uid://1ujfoei6r514" path="res://camera/camera.tscn" id="2_uu6xs"]
+[ext_resource type="PackedScene" uid="uid://bjffcfnyeiitd" path="res://map/TacticalMap.tscn" id="3_r0du0"]
+
+[sub_resource type="Environment" id="Environment_fos0i"]
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_sky_contribution = 0.43
+ambient_light_energy = 1.21
+reflected_light_source = 2
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_glv2v")
+
+[node name="CameraRig" parent="." instance=ExtResource("2_uu6xs")]
+transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0, 0, -1.5795822)
+
+[node name="Map" parent="." instance=ExtResource("3_r0du0")]
+map_width = 60
+map_height = 60
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.70710677, 0.49999994, -0.49999994, 0, 0.7071067, 0.7071067, 0.70710677, -0.49999994, 0.49999994, 0, 4.0967407, 0)
+light_energy = 3.83
+light_volumetric_fog_energy = 0.0
+shadow_enabled = true
+directional_shadow_mode = 0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_fos0i")

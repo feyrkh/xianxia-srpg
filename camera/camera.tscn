@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://1ujfoei6r514"]
+
+[ext_resource type="Script" uid="uid://cd4rj5jxm84sw" path="res://camera/camera.gd" id="1_lw1ob"]
+
+[node name="CameraRig" type="Node3D"]
+script = ExtResource("1_lw1ob")
+rotation_pivot_path = NodePath("RotationPivot")
+tilt_pivot_path = NodePath("RotationPivot/TiltPivot")
+camera_path = NodePath("RotationPivot/TiltPivot/Camera3D")
+
+[node name="RotationPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.999999, 0, 0, 0, 0.999999, 0, 0, 0)
+
+[node name="TiltPivot" type="Node3D" parent="RotationPivot"]
+
+[node name="Camera3D" type="Camera3D" parent="RotationPivot/TiltPivot"]
+current = true
+size = 10.0

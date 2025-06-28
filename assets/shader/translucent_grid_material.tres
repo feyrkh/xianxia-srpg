@@ -1,0 +1,23 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://wt5yvdw7wpsg"]
+
+[ext_resource type="Shader" uid="uid://bw0iuvlyiv4xn" path="res://assets/shader/translucent_grid.gdshader" id="1_nfbx8"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_nfbx8")
+shader_parameter/grid_size = 100.0
+shader_parameter/cell_size = 1.0
+shader_parameter/gutter_size = 0.05999999999767169
+shader_parameter/cell_color = Color(0.07843137, 0.023529412, 0, 0)
+shader_parameter/gutter_color = Color(1, 0, 0, 0.52156866)
+shader_parameter/cell_roundedness = 0.0
+shader_parameter/cell_manipulator_radius = 0.0
+shader_parameter/cell_manipulator_uv_pos = Vector2(0.5, 0.5)
+shader_parameter/manipulated_cell_size = 0.5
+shader_parameter/manipulator_gutter_color = Color(1, 1, 1, 1)
+shader_parameter/cell_manipulation_anim_speed = 1.0
+shader_parameter/gutter_noise_color = Color(1, 1, 1, 1)
+shader_parameter/gutter_noise_speed = 0.1
+shader_parameter/fresnel_color = Color(0.675, 0.192, 0, 1)
+shader_parameter/fresnel_intensity = 0.2
+shader_parameter/fresnel_amount = 15.0

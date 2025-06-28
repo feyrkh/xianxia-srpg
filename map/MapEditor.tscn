@@ -1,0 +1,311 @@
+[gd_scene load_steps=18 format=3 uid="uid://chuakfuuq3q0k"]
+
+[ext_resource type="Script" uid="uid://drx0xf7457mfn" path="res://map/MapEditor.gd" id="1_5fycq"]
+[ext_resource type="PackedScene" uid="uid://1ujfoei6r514" path="res://camera/camera.tscn" id="2_uy6vd"]
+[ext_resource type="PackedScene" uid="uid://bjffcfnyeiitd" path="res://map/TacticalMap.tscn" id="3_amtie"]
+[ext_resource type="Script" uid="uid://bytwspu3gfs28" path="res://map/EditorHeightPlane.gd" id="4_hb4as"]
+[ext_resource type="Shader" uid="uid://bw0iuvlyiv4xn" path="res://assets/shader/translucent_grid.gdshader" id="5_hc7va"]
+[ext_resource type="Script" uid="uid://bjhfxgsu130d" path="res://map/CursorTracker.gd" id="6_ama3a"]
+
+[sub_resource type="Environment" id="Environment_fos0i"]
+ambient_light_source = 2
+ambient_light_color = Color(1, 1, 1, 1)
+ambient_light_sky_contribution = 0.43
+ambient_light_energy = 1.21
+reflected_light_source = 2
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ama3a"]
+render_priority = 0
+shader = ExtResource("5_hc7va")
+shader_parameter/grid_size = 1.0
+shader_parameter/cell_size = 1.0
+shader_parameter/gutter_size = -0.11000000000058208
+shader_parameter/cell_color = Color(0.07843137, 0.023529412, 0, 0)
+shader_parameter/gutter_color = Color(0, 0, 0.98039216, 0.52156866)
+shader_parameter/cell_roundedness = 0.0
+shader_parameter/cell_manipulator_radius = 0.0
+shader_parameter/cell_manipulator_uv_pos = Vector2(0.5, 0.5)
+shader_parameter/manipulated_cell_size = 0.5
+shader_parameter/manipulator_gutter_color = Color(1, 1, 1, 1)
+shader_parameter/cell_manipulation_anim_speed = 0.0
+shader_parameter/gutter_noise_color = Color(1, 1, 1, 1)
+shader_parameter/gutter_noise_speed = 0.1
+shader_parameter/fresnel_color = Color(0.675, 0.192, 0, 1)
+shader_parameter/fresnel_intensity = 0.2
+shader_parameter/fresnel_amount = 15.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ama3a"]
+material = SubResource("ShaderMaterial_ama3a")
+size = Vector2(1.01, 1.01)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crhw4"]
+render_priority = 0
+shader = ExtResource("5_hc7va")
+shader_parameter/grid_size = 1.0
+shader_parameter/cell_size = 1.0
+shader_parameter/gutter_size = -0.319999999992433
+shader_parameter/cell_color = Color(0.07843137, 0.023529412, 0, 0)
+shader_parameter/gutter_color = Color(1, 1, 1, 0.52156866)
+shader_parameter/cell_roundedness = 0.0
+shader_parameter/cell_manipulator_radius = 0.0
+shader_parameter/cell_manipulator_uv_pos = Vector2(0.5, 0.5)
+shader_parameter/manipulated_cell_size = 0.5
+shader_parameter/manipulator_gutter_color = Color(1, 1, 1, 1)
+shader_parameter/cell_manipulation_anim_speed = 0.0
+shader_parameter/gutter_noise_color = Color(1, 1, 1, 1)
+shader_parameter/gutter_noise_speed = 0.1
+shader_parameter/fresnel_color = Color(0.675, 0.192, 0, 1)
+shader_parameter/fresnel_intensity = 0.2
+shader_parameter/fresnel_amount = 15.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_0w314"]
+material = SubResource("ShaderMaterial_crhw4")
+size = Vector2(1.01, 1.01)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hc7va"]
+render_priority = 0
+shader = ExtResource("5_hc7va")
+shader_parameter/grid_size = 1.0
+shader_parameter/cell_size = 1.0
+shader_parameter/gutter_size = -0.11000000000058208
+shader_parameter/cell_color = Color(0.07843137, 0.023529412, 0, 0)
+shader_parameter/gutter_color = Color(0.63570035, 0, 0.18402621, 0.52156866)
+shader_parameter/cell_roundedness = 0.0
+shader_parameter/cell_manipulator_radius = 0.0
+shader_parameter/cell_manipulator_uv_pos = Vector2(0.5, 0.5)
+shader_parameter/manipulated_cell_size = 0.5
+shader_parameter/manipulator_gutter_color = Color(1, 1, 1, 1)
+shader_parameter/cell_manipulation_anim_speed = 0.0
+shader_parameter/gutter_noise_color = Color(1, 1, 1, 1)
+shader_parameter/gutter_noise_speed = 0.1
+shader_parameter/fresnel_color = Color(0.675, 0.192, 0, 1)
+shader_parameter/fresnel_intensity = 0.2
+shader_parameter/fresnel_amount = 15.0
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_crhw4"]
+material = SubResource("ShaderMaterial_hc7va")
+size = Vector2(1.01, 1.01)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_crhw4"]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0.03137255)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_pcbcf"]
+material = SubResource("StandardMaterial3D_crhw4")
+size = Vector2(100, 100)
+center_offset = Vector3(49.5, 0, 49.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ama3a"]
+transparency = 1
+albedo_color = Color(1, 1, 1, 0.03137255)
+
+[sub_resource type="BoxMesh" id="BoxMesh_crhw4"]
+material = SubResource("StandardMaterial3D_ama3a")
+
+[node name="MapEditor" type="Node3D"]
+script = ExtResource("1_5fycq")
+
+[node name="CameraRig" parent="." instance=ExtResource("2_uy6vd")]
+transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0, 0, -1.5795822)
+
+[node name="Map" parent="." instance=ExtResource("3_amtie")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.70710677, 0.49999994, -0.49999994, 0, 0.7071067, 0.7071067, 0.70710677, -0.49999994, 0.49999994, 0, 4.0967407, 0)
+light_energy = 3.83
+light_volumetric_fog_energy = 0.0
+directional_shadow_mode = 0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_fos0i")
+
+[node name="EditFloor" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, 0)
+script = ExtResource("4_hb4as")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="EditFloor"]
+mesh = SubResource("PlaneMesh_ama3a")
+skeleton = NodePath("../..")
+
+[node name="Label3D" type="Label3D" parent="EditFloor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.26139224, 0.35103035)
+billboard = 1
+text = "h=0"
+
+[node name="EditTracer" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, 0)
+script = ExtResource("4_hb4as")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="EditTracer"]
+mesh = SubResource("PlaneMesh_0w314")
+skeleton = NodePath("../..")
+
+[node name="EditCeiling" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.001, 0)
+script = ExtResource("4_hb4as")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="EditCeiling"]
+mesh = SubResource("PlaneMesh_crhw4")
+skeleton = NodePath("../..")
+
+[node name="Label3D" type="Label3D" parent="EditCeiling"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35935128, 0.3497212)
+billboard = 1
+text = "h=0"
+
+[node name="EditOrigin" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_pcbcf")
+script = ExtResource("6_ama3a")
+
+[node name="Sidebar" type="PanelContainer" parent="."]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 193.0
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Sidebar"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+text = "Move cursor ceiling: R/F
+Move cursor floor: Shift+R/F
+Move cursor: Ctrl+R/F"
+
+[node name="CursorDetails" type="Label" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+
+[node name="PrevTerrain" type="Button" parent="Sidebar/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "<"
+
+[node name="TerrainTexturePreview" type="TextureRect" parent="Sidebar/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+expand_mode = 2
+
+[node name="TerrainTexturePreview2" type="TextureRect" parent="Sidebar/VBoxContainer/HBoxContainer"]
+modulate = Color(0.851, 0.851, 0.851, 1)
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+expand_mode = 2
+
+[node name="NextTerrain" type="Button" parent="Sidebar/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = ">"
+
+[node name="TerrainDetails" type="Label" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+
+[node name="NextMode" type="Button" parent="Sidebar/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "Mode: "
+
+[node name="ModeLabel" type="Label" parent="Sidebar/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+
+[node name="SaveFileName" type="LineEdit" parent="Sidebar/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "tmp"
+
+[node name="Save" type="Button" parent="Sidebar/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Save"
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+
+[node name="LoadFileName" type="OptionButton" parent="Sidebar/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Load" type="Button" parent="Sidebar/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "Load"
+
+[node name="Label2" type="Label" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+text = "Map Generation Settings"
+
+[node name="HBoxContainer6" type="GridContainer" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+columns = 2
+
+[node name="Label" type="Label" parent="Sidebar/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "Frequency"
+
+[node name="GenFrequency" type="LineEdit" parent="Sidebar/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "0.2"
+
+[node name="Label2" type="Label" parent="Sidebar/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "Octaves"
+
+[node name="GenOctaves" type="SpinBox" parent="Sidebar/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="Sidebar/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "Lacunarity"
+
+[node name="GenLacuna" type="LineEdit" parent="Sidebar/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "0.9"
+
+[node name="Label4" type="Label" parent="Sidebar/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "Seed"
+
+[node name="GenSeed" type="LineEdit" parent="Sidebar/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "default"
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="Sidebar/VBoxContainer"]
+layout_mode = 2
+
+[node name="GenWidth" type="LineEdit" parent="Sidebar/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "20"
+
+[node name="Label" type="Label" parent="Sidebar/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "x"
+
+[node name="GenHeight" type="LineEdit" parent="Sidebar/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "20"
+
+[node name="GenerateButton" type="Button" parent="Sidebar/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "Generate"
+
+[node name="CursorBox" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_crhw4")
+
+[node name="CursorBoxLabel" type="Label3D" parent="CursorBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35935128, 0.3497212)
+billboard = 1
+
+[connection signal="pressed" from="Sidebar/VBoxContainer/HBoxContainer/PrevTerrain" to="." method="_on_prev_terrain_pressed"]
+[connection signal="pressed" from="Sidebar/VBoxContainer/HBoxContainer/NextTerrain" to="." method="_on_next_terrain_pressed"]
+[connection signal="pressed" from="Sidebar/VBoxContainer/HBoxContainer2/NextMode" to="." method="_on_next_mode_pressed"]
+[connection signal="pressed" from="Sidebar/VBoxContainer/HBoxContainer3/Save" to="." method="_on_save_pressed"]
+[connection signal="focus_entered" from="Sidebar/VBoxContainer/HBoxContainer4/LoadFileName" to="." method="_on_load_file_name_focus_entered"]
+[connection signal="pressed" from="Sidebar/VBoxContainer/HBoxContainer4/Load" to="." method="_on_load_pressed"]
+[connection signal="pressed" from="Sidebar/VBoxContainer/HBoxContainer5/GenerateButton" to="." method="_on_generate_button_pressed"]
