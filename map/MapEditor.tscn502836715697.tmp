@@ -37,6 +37,7 @@ shader_parameter/fresnel_amount = 15.0
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ama3a"]
 material = SubResource("ShaderMaterial_ama3a")
+custom_aabb = AABB(0, 0.001, 0, 0, 0, 0)
 size = Vector2(1.01, 1.01)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_crhw4"]
@@ -127,7 +128,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, 0)
 script = ExtResource("4_hb4as")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="EditFloor"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001, 0)
 mesh = SubResource("PlaneMesh_ama3a")
 skeleton = NodePath("../..")
 

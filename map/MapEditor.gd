@@ -1,15 +1,6 @@
 extends Node3D
 class_name MapEditor
 
-const INCREMENT := 0.25
-const MIN_HEIGHT := 0
-const MAX_HEIGHT := 100
-const ZFIGHT_OFFSET := 0.001
-
-enum Mode {
-	Static = 0,
-	StackTop = 1,
-}
 
 @onready var map: TacticalMap = find_child("Map")
 @onready var edit_floor: Node3D = find_child("EditFloor")
@@ -25,40 +16,65 @@ enum Mode {
 @onready var save_file_name: LineEdit = find_child("SaveFileName")
 @onready var load_file_name: OptionButton = find_child("LoadFileName")
 
-var move_cooldown := 0.1
-var selected_terrain_idx := 1
-var selected_terrain:TerrainInfo = TerrainInfo.Types.get(selected_terrain_idx)
-var cur_mode := Mode.StackTop
-var cur_hovered_tile:MapTile
-var cur_hovered_cell:Vector2i
-var last_stack_check:Vector2i
+@onready var terrain_edit_input: TerrainEditInput = find_child("TerrainEditInput")
+
+var all_input_controllers:Array[TileBasedInputController]
+var cur_input_controller:TileBasedInputController:
+	set(v):
+		if cur_input_controller != v:
+			if cur_input_controller != null:
+				cur_input_controller.on_leave_mode()
+			cur_input_controller = v
+			cur_input_controller.on_enter_mode()
+
 var lock_clicks = 0
 
-enum DragMode {
-	None,
-	CreateTile,
-	DeleteTile,
-}
-var cursor_drag_start
-var cursor_drag_mode:DragMode = DragMode.None:
-	set(v):
-		cursor_drag_mode = v
-		if v == DragMode.None and cursor_box_label:
-			cursor_box_label.text = ""
-
 func _ready() -> void:
+	all_input_controllers = [terrain_edit_input]
+	cur_input_controller = terrain_edit_input
+	terrain_edit_input.on_cursor_position_updated.connect(on_terrain_edit_cursor_position_updated)
+	terrain_edit_input.selected_terrain_updated.connect(on_selected_terrain_updated)
+	terrain_edit_input.cursor_base_updated.connect(on_cursor_base_updated)
+	terrain_edit_input.cursor_height_updated.connect(on_cursor_height_updated)
+	terrain_edit_input.cursor_mode_updated.connect(on_terrain_edit_cursor_mode_updated)
+	terrain_edit_input.cursor_drag_area_updated.connect(on_cursor_drag_area_updated)
 	map.render([[1]])
 	update_cursor_text()
-	update_selected_terrain(0)
-	update_selected_mode(0)
+	on_selected_terrain_updated(terrain_edit_input.selected_terrain)
+	on_terrain_edit_cursor_mode_updated(TerrainEditInput.Mode.StackTop)
 	var origin_plane := (find_child("EditOrigin") as MeshInstance3D)
-	origin_plane.cell_highlighted.connect(on_cell_highlighted)
+	origin_plane.cell_highlighted.connect(on_cell_hovered)
 	EventBus.tile_left_clicked.connect(on_tile_left_click)
 	EventBus.tile_right_clicked.connect(on_tile_right_click)
 	EventBus.tile_hovered.connect(on_tile_hovered)
 	EventBus.tile_unhovered.connect(on_tile_unhovered)
 	origin_plane.cell_left_clicked.connect(on_cell_left_click)
 	origin_plane.cell_right_clicked.connect(on_cell_right_click)
+
+func on_terrain_edit_cursor_position_updated(pos:Vector2i) -> void:
+	edit_floor.position.x = pos.x
+	edit_floor.position.z = pos.y
+	edit_ceiling.position.x = pos.x
+	edit_ceiling.position.z = pos.y
+	edit_tracer.position.x = pos.x
+	edit_tracer.position.z = pos.y
+	update_cursor_text()
+
+func on_terrain_edit_cursor_mode_updated(mode:TerrainEditInput.Mode) -> void:
+	mode_label.text = "(%d) %s" % [mode, TerrainEditInput.Mode.find_key(mode)]
+
+func on_cursor_base_updated(new_base:float) -> void:
+	edit_floor.position.y = new_base
+	update_cursor_text()
+
+func on_cursor_height_updated(new_height:float) -> void:
+	edit_ceiling.position.y = new_height
+	update_cursor_text()
+
+func on_selected_terrain_updated(selected_terrain:TerrainInfo) -> void:
+	terrain_details.text = "%2d - %s" % [selected_terrain.id, selected_terrain.terrain_name]
+	terrain_texture_preview.texture = selected_terrain.top_material.albedo_texture
+	terrain_texture_preview2.texture = selected_terrain.side_material.albedo_texture
 
 func _notification(what: int):
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
@@ -77,218 +93,38 @@ func allow_clicks() -> bool:
 	
 func _input(event:InputEvent) -> void:
 	if event is InputEventKey:
-		if cursor_drag_start != null:
-			if  event.is_released() and event.keycode == KEY_SHIFT:
-				# Cancelled a area drag/release
-				cursor_drag_start = null
-				cursor_drag_mode = DragMode.None
+		cur_input_controller.on_input_event_key(event)
 	elif event is InputEventMouseButton:
-		if cursor_drag_start != null:
-			if cursor_drag_mode == DragMode.CreateTile and event.is_action_released("left_click"): 
-				# completed area drag/release with left mouse button
-				create_tile_block_from_selection()
-			elif cursor_drag_mode == DragMode.DeleteTile and event.is_action_released("right_click"):
-				# completed area drag/release with right mouse button
-				delete_tile_block_from_selection()
+		cur_input_controller.on_input_event_mouse_button(event)
 
-func create_tile_block_from_selection() -> void:
+func create_tile_block_from_selection(drag_start:Vector2i, drag_end:Vector2i, cursor_base:float, cursor_height:float, terrain_id:TerrainInfo.TypeNames) -> void:
 	print("Creating tiles")
-	var tile_info:TileInfo = TileInfo.build(get_cursor_height(), get_cursor_base(), selected_terrain.id)
-	map.create_tile_block(tile_info, min(cursor_drag_start.x, edit_ceiling.position.x), min(cursor_drag_start.y, edit_ceiling.position.z), max(cursor_drag_start.x, edit_ceiling.position.x), max(cursor_drag_start.y, edit_ceiling.position.z))
-	cursor_drag_start = null
-	cursor_drag_mode = DragMode.None
-	last_stack_check = Vector2i(-1, -1)
-	#handle_cursor_mode(int(edit_ceiling.position.x), int(edit_ceiling.position.y))
+	var tile_info:TileInfo = TileInfo.build(cursor_height, cursor_base, terrain_id)
+	map.create_tile_block(tile_info, min(drag_start.x, drag_end.x), min(drag_start.y, drag_end.y), max(drag_start.x, drag_end.x), max(drag_start.y, drag_end.y))
 
-
-func delete_tile_block_from_selection() -> void:
+func delete_tile_block_from_selection(drag_start:Vector2i, drag_end:Vector2i, cursor_base:float, cursor_height:float) -> void:
 	print("Deleting tiles")
-	var sx:int = mini(cursor_drag_start.x, get_cursor_tile_coords().x)
-	var sy:int = mini(cursor_drag_start.y, get_cursor_tile_coords().y)
-	var ex:int = maxi(cursor_drag_start.x, get_cursor_tile_coords().x)
-	var ey:int = maxi(cursor_drag_start.y, get_cursor_tile_coords().y)
-	var base = get_cursor_base()
-	var h = get_cursor_height()
+	var sx:int = mini(drag_start.x, drag_end.x)
+	var sy:int = mini(drag_start.y, drag_end.y)
+	var ex:int = maxi(drag_start.x, drag_end.x)
+	var ey:int = maxi(drag_start.y, drag_end.y)
+	var base = cursor_base
+	var h = cursor_height
 	for y in range(sy, ey+1):
 		for x in range(sx, ex+1):
 			map.carve_hole_in_tile(x, y, base, h)
 	map.update_wall_meshes(sx-1, sy-1, ex+1, ey+1)
-	cursor_drag_start = null
-	cursor_drag_mode = DragMode.None
 
-func on_tile_hovered(tile:MapTile) -> void:
-	cur_hovered_tile = tile
-	print("hovered tile ", tile)
-	last_stack_check = Vector2i(-1, -1)
-	handle_cursor_mode(tile.tile_info.x, tile.tile_info.y)
-
-func on_tile_unhovered(tile:MapTile) -> void:
-	if tile == cur_hovered_tile:
-		cur_hovered_tile = null
-		print("unhovered tile")
-
-func on_cell_highlighted(x:int, y:int) -> void:
-	edit_floor.position.x = x
-	edit_floor.position.z = y
-	edit_ceiling.position.x = x
-	edit_ceiling.position.z = y
-	edit_tracer.position.x = x
-	edit_tracer.position.z = y
-	cur_hovered_cell = Vector2i(x, y)
-	update_cursor_text()
-	if !cur_hovered_tile:
-		handle_cursor_mode(x, y)
-
-func handle_cursor_mode(x:int, y:int) -> void:
-	if cur_mode == Mode.Static or cursor_drag_mode != DragMode.None:
-		return
-	elif cur_mode == Mode.StackTop:
-		var cur_stack_check = get_cursor_tile_coords()
-		if cur_stack_check == last_stack_check:
-			return
-		last_stack_check = cur_stack_check
-		var tile_to_stack_on := cur_hovered_tile
-		var size := edit_ceiling.position.y - edit_floor.position.y
-		if !tile_to_stack_on:
-			tile_to_stack_on = map.find_next_tile_gap(x, y, null, size, true)
-		else:
-			print("Already on a tile h=", tile_to_stack_on.h, ", xy=", tile_to_stack_on.x, ", ", tile_to_stack_on.y)
-			tile_to_stack_on = map.find_next_tile_gap(x, y, tile_to_stack_on, size, true)
-			print("Next gap is at ", tile_to_stack_on.h)
-		if tile_to_stack_on:
-			edit_floor.position.y = tile_to_stack_on.tile_info.h + ZFIGHT_OFFSET
-			edit_ceiling.position.y = edit_floor.position.y + size
-		else:
-			edit_floor.position.y = 0 + ZFIGHT_OFFSET
-			edit_ceiling.position.y = edit_floor.position.y + size
-		move_edit_floor(0)
-
-func create_tile_on_cursor(x:int, y:int):
-	var tile_info:TileInfo = TileInfo.build(get_cursor_height(), get_cursor_base(), selected_terrain.id, x, y)
+func create_tile_on_cursor(x:int, y:int, cursor_base:float, cursor_height:float, terrain_id:TerrainInfo.TypeNames):
+	var tile_info:TileInfo = TileInfo.build(cursor_height, cursor_base, terrain_id, x, y)
 	map.create_tile(tile_info)
-	last_stack_check = Vector2i(-1, -1)
-	handle_cursor_mode(x, y)
-
-func on_tile_left_click(tile:MapTile) -> void:
-	if !allow_clicks():
-		return
-	if Input.is_key_pressed(KEY_SHIFT):
-		# start dragging a rectangle of tiles
-		cursor_drag_start = Vector2i(tile.x, tile.y)
-		cursor_drag_mode = DragMode.CreateTile
-		print("Tile drag started: ", cursor_drag_start)
-	else:
-		print("Tile clicked: ", tile.tile_info.x, ", ", tile.tile_info.y)
-		create_tile_on_cursor(tile.tile_info.x, tile.tile_info.y)
-
-func on_tile_right_click(tile:MapTile) -> void:
-	if !allow_clicks():
-		return
-	print("Tile right-clicked: ", tile.tile_info.x, ", ", tile.tile_info.y)
-	if Input.is_key_pressed(KEY_SHIFT):
-		cursor_drag_start = Vector2i(tile.x, tile.y)
-		cursor_drag_mode = DragMode.DeleteTile
-		print("Tile drag started: ", cursor_drag_start)
-	else:
-		tile.h -= 0.25
-		if tile.h <= tile.base:
-			tile.delete(map)
-		else:
-			map.update_wall_meshes(tile.x-1, tile.y-1, tile.x+1, tile.y+1)
-	last_stack_check = Vector2i(-1, -1)
-	handle_cursor_mode(tile.x, tile.y)
-
-func on_cell_left_click(x:int, y:int) -> void:
-	if !allow_clicks():
-		return
-	if Input.is_key_pressed(KEY_SHIFT):
-		# start dragging a rectangle of tiles
-		cursor_drag_start = Vector2i(x, y)
-		cursor_drag_mode = DragMode.CreateTile
-		print("Tile drag started: ", cursor_drag_start)
-	else:
-		print("Cell clicked: ", x, ", ", y)
-		create_tile_on_cursor(x, y)
-		last_stack_check = Vector2i(-1, -1)
-		handle_cursor_mode(x, y)
-
-func on_cell_right_click(x:int, y:int) -> void:
-	print("Cell right clicked: ", x, ", ", y)
-	if Input.is_key_pressed(KEY_SHIFT):
-		cursor_drag_start = Vector2i(x, y)
-		cursor_drag_mode = DragMode.DeleteTile
-		print("Tile drag started: ", cursor_drag_start)
 
 func _process(delta:float) -> void:
-	update_cursor_movement(delta)
+	cur_input_controller.process_frame(delta)
 
-func update_cursor_movement(delta:float) -> void:
-	if move_cooldown > 0:
-		move_cooldown -= delta
-		return
-	if Input.is_action_pressed("editor_cursor_up"):
-		var moved := move_edit_ceiling(0.25)
-		move_edit_floor(moved)
-	elif Input.is_action_pressed("editor_cursor_down"):
-		var moved := move_edit_floor(-0.25)
-		move_edit_ceiling(moved)
-	elif Input.is_action_pressed("editor_floor_up"):
-		move_edit_floor(0.25)
-	elif Input.is_action_pressed("editor_floor_down"):
-		move_edit_floor(-0.25)
-	elif Input.is_action_pressed("editor_ceiling_up"):
-		move_edit_ceiling(0.25)
-	elif Input.is_action_pressed("editor_ceiling_down"):
-		move_edit_ceiling(-0.25)
-	elif Input.is_action_pressed("ui_left"):
-		update_selected_terrain(-1)
-	elif Input.is_action_pressed("ui_right"):
-		update_selected_terrain(1)
-
-func update_selected_terrain(i:int) -> void:
-	var terrains := TerrainInfo.TypeNames.values()
-	terrains.sort()
-	selected_terrain_idx += i
-	while selected_terrain_idx < 0:
-		selected_terrain_idx += terrains.size()
-	selected_terrain_idx %= terrains.size()
-	selected_terrain = TerrainInfo.Types[terrains[selected_terrain_idx]]
-	terrain_details.text = "%2d - %s" % [selected_terrain.id, selected_terrain.terrain_name]
-	terrain_texture_preview.texture = selected_terrain.top_material.albedo_texture
-	terrain_texture_preview2.texture = selected_terrain.side_material.albedo_texture
-
-func update_selected_mode(i:int) -> void:
-	cur_mode = (cur_mode + i) as Mode
-	if cur_mode < 0:
-		cur_mode = Mode.size() - 1  as Mode
-	elif cur_mode >= Mode.size():
-		cur_mode = 0 as Mode
-	mode_label.text = "(%d) %s" % [cur_mode, Mode.find_key(cur_mode)]
-
-func get_cursor_height() -> float:
-	return snapped(edit_ceiling.position.y, INCREMENT)
-	
-func get_cursor_base() -> float:
-	return snapped(edit_floor.position.y, INCREMENT)
 
 func get_cursor_tile_coords() -> Vector2i:
 	return Vector2i(int(edit_floor.position.x), int(edit_floor.position.z))
-
-func move_edit_ceiling(amt:float) -> float:
-	move_cooldown = 0.1
-	var old_pos := edit_ceiling.position.y
-	edit_ceiling.position.y = clamp(edit_ceiling.position.y + amt, INCREMENT + ZFIGHT_OFFSET, MAX_HEIGHT + ZFIGHT_OFFSET)
-	edit_floor.position.y = clamp(edit_floor.position.y, MIN_HEIGHT + ZFIGHT_OFFSET, edit_ceiling.position.y - INCREMENT + ZFIGHT_OFFSET)
-	update_cursor_text()
-	return edit_ceiling.position.y - old_pos
-	
-func move_edit_floor(amt:float) -> float:
-	move_cooldown = 0.1
-	var old_pos := edit_floor.position.y
-	edit_floor.position.y = clamp(edit_floor.position.y + amt, MIN_HEIGHT + ZFIGHT_OFFSET, MAX_HEIGHT - INCREMENT + ZFIGHT_OFFSET)
-	edit_ceiling.position.y = clamp(edit_ceiling.position.y, edit_floor.position.y + INCREMENT, MAX_HEIGHT + ZFIGHT_OFFSET)
-	update_cursor_text()
-	return edit_floor.position.y - old_pos
 
 func update_cursor_text():
 	var cursor_height := edit_ceiling.position.y - edit_floor.position.y
@@ -299,26 +135,20 @@ func update_cursor_text():
 		edit_ceiling.position.y, edit_floor.position.y,
 		cursor_height,
 	])
-	if cursor_drag_start == null:
-		cursor_box.mesh.size = Vector3(1, cursor_height, 1)
-		cursor_box.position = (edit_ceiling.position + edit_floor.position) / 2.0 
+
+func on_cursor_drag_area_updated(start, end, cursor_base:float, cursor_height:float) -> void:
+	if start == null:
+		cursor_box.visible = false
+		#cursor_box.mesh.size = Vector3(1, cursor_height, 1)
+		#cursor_box.position = (edit_ceiling.position + edit_floor.position) / 2.0 
 	else:
-		var box_width:int = abs(cursor_drag_start.x - edit_ceiling.position.x) + 1
-		var box_length:int = abs(cursor_drag_start.y - edit_ceiling.position.z) + 1
+		var box_width:int = abs(end.x - start.x) + 1
+		var box_length:int = abs(end.y - start.y) + 1
 		cursor_box.mesh.size = Vector3(box_width, cursor_height, box_length)
-		cursor_box.position = Vector3((edit_ceiling.position.x - cursor_drag_start.x)/2.0 + cursor_drag_start.x, (edit_ceiling.position.y + edit_floor.position.y) / 2.0, (edit_ceiling.position.z - cursor_drag_start.y)/2.0 + cursor_drag_start.y)
+		cursor_box.position = Vector3(box_width/2.0 + start.x - 0.5, (cursor_height + cursor_base) / 2.0, box_length/2.0 + start.y - 0.5)
 		cursor_box_label.text = "%d x %d x %.2f" % [box_width, box_length, cursor_height]
+		cursor_box.visible = true
 		
-
-func _on_prev_terrain_pressed() -> void:
-	update_selected_terrain(-1)
-
-func _on_next_terrain_pressed() -> void:
-	update_selected_terrain(1)
-
-func _on_next_mode_pressed() -> void:
-	update_selected_mode(1)
-
 func _on_load_file_name_focus_entered() -> void:
 	var dir := DirAccess.open("user://maps")
 	if dir == null:
@@ -369,3 +199,32 @@ func _on_generate_button_pressed() -> void:
 	var height_map := MapGenerator.generate_height_map(int(find_child("GenWidth").text), int(find_child("GenHeight").text), noise)
 	map.render(height_map)
 	
+
+func on_cell_hovered(x:int, y:int) -> void:
+	cur_input_controller.on_cell_hovered(x, y)
+
+func on_cell_left_click(x:int, y:int) -> void:
+	if !allow_clicks():
+		return
+	cur_input_controller.on_cell_left_click(x, y)
+	
+func on_cell_right_click(x:int, y:int) -> void:
+	if !allow_clicks():
+		return
+	cur_input_controller.on_cell_right_click(x, y)
+
+func on_tile_left_click(t:MapTile) -> void:
+	if !allow_clicks():
+		return
+	cur_input_controller.on_tile_left_click(t)
+
+func on_tile_right_click(t:MapTile) -> void:
+	if !allow_clicks():
+		return
+	cur_input_controller.on_tile_right_click(t)
+
+func on_tile_hovered(t:MapTile) -> void:
+	cur_input_controller.on_tile_hovered(t)
+
+func on_tile_unhovered(t:MapTile) -> void:
+	cur_input_controller.on_tile_unhovered(t)
