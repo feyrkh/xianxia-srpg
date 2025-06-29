@@ -28,6 +28,9 @@ var tile_map:Array2D = Array2D.new() # 2d array, each cell is an array of all th
 
 var meshes := {}
 
+func get_tiles(x:int, y:int) -> Array[MapTile]:
+	return tile_map.g(x, y)
+
 func clear() -> void:
 	tile_map = Array2D.new()
 	for c in walls_node.get_children():
@@ -134,7 +137,7 @@ func sort_tiles_by_height(sx:int=0, sy:int=0, ex:int=tile_map.width, ey:int=tile
 			if entries == null:
 				return
 			entries.sort_custom(MapTile._cmp)
-				
+
 func _render_cell_entry(cell:Variant, x:int, y:int) -> void:
 	var tile_info:TileInfo
 	if cell is float or cell is int:

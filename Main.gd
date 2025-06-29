@@ -4,7 +4,6 @@ extends Node3D
 @export var noise_lacunarity: float = 0.89
 
 func _ready() -> void:
-	var height_map:Array = []
 	var noise := FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_PERLIN
 	
@@ -12,5 +11,10 @@ func _ready() -> void:
 	noise.frequency = noise_frequency
 	noise.fractal_lacunarity = noise_lacunarity
 
-	height_map = MapGenerator.generate_height_map(20, 20, noise)
-	$Map.render(height_map)
+	#var height_map := MapGenerator.generate_height_map(20, 20, noise)
+	#$Map.render(height_map)
+	var map:TacticalMap = $Map
+	map.load("user://maps/gentle_hills_40x40_castle.map")
+	var middle_tiles := map.get_tiles(20, 20)
+	var bottom_tile := middle_tiles[0]
+	

@@ -18,8 +18,6 @@ script = ExtResource("1_glv2v")
 transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0, 0, -1.5795822)
 
 [node name="Map" parent="." instance=ExtResource("3_r0du0")]
-map_width = 60
-map_height = 60
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.70710677, 0.49999994, -0.49999994, 0, 0.7071067, 0.7071067, 0.70710677, -0.49999994, 0.49999994, 0, 4.0967407, 0)

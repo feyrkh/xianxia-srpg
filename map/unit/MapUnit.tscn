@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://d26anq5b3cuhg"]
+
+[ext_resource type="Texture2D" uid="uid://b6epxp0fouv1c" path="res://assets/sprites/placeholders.png" id="1_anics"]
+
+[node name="MapUnit" type="Node3D"]
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8297483, 0)
+pixel_size = 0.1
+billboard = 1
+texture = ExtResource("1_anics")
+region_enabled = true
+region_rect = Rect2(32, 0, 16, 16.5)
