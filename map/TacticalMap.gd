@@ -2,11 +2,13 @@ extends Node3D
 class_name TacticalMap
 
 @export var tile_size: float = 1.0
+@export var height_increment := 0.25
 
 @export var side_overlay_material:BaseMaterial3D
 
 @onready var tiles_node = $Tiles
 @onready var walls_node = $Walls
+@onready var unit_placements_node = $UnitPlacements
 
 const directions = {
 	Vector2(0, -1): Vector3(0, 0, -1), # north
@@ -22,14 +24,15 @@ const rotations = {
 	Vector3(1, 0, 0): PI/2,
 }
 
+var edit_mode:bool = false
 var default_tile_type:TerrainInfo = TerrainInfo.Types[TerrainInfo.TypeNames.Grass]
 var wall_nodes:Array = [[]]
 var tile_map:Array2D = Array2D.new() # 2d array, each cell is an array of all the MapTile objects in that position (which may be stacked)
 
 var meshes := {}
 
-func get_tiles(x:int, y:int) -> Array[MapTile]:
-	return tile_map.g(x, y)
+func get_tiles(x:int, y:int):
+	return tile_map.g(x, y, [])
 
 func clear() -> void:
 	tile_map = Array2D.new()
@@ -37,18 +40,58 @@ func clear() -> void:
 		c.queue_free()
 	for c in tiles_node.get_children():
 		c.queue_free()
+	for c in unit_placements_node.get_children():
+		c.queue_free()
 
 func save(filename:String) -> void:
-	TacticalMapSerializer.save_map(filename, tile_map)
+	TacticalMapSerializer.save_map(filename, self)
 
 func load(filename: String) -> void:
 	clear()
-	var tile_info_list:Array =  TacticalMapSerializer.load_map(filename)
+	var loaded:TacticalMapSerializer.LoadMapData = TacticalMapSerializer.load_map(filename)
+	var tile_info_list:Array = loaded.tile_data
 	for tile_info in tile_info_list:
 		#print("Loading tile %d,%d" % [tile_info.x, tile_info.y])
 		create_tile_from_info(tile_info)
 	print("Loaded %d x %d map" % [tile_map.width, tile_map.height])
 	update_wall_meshes(0, 0, tile_map.width+1, tile_map.height+1)
+	for entry in loaded.unit_placement_data:
+		entry.show_label = edit_mode
+		add_unit_placement(entry)
+
+func add_unit_placement(placement_data:MapUnitPosition) -> void:
+	var tiles:Array = get_tiles(placement_data.x, placement_data.y)
+	if !tiles:
+		tiles = []
+	var closest_tile = null
+	var closest_dist = INF
+	for tile in tiles:
+		var dist = abs(tile.h - placement_data.height)
+		if dist < closest_dist:
+			closest_tile = tile
+			closest_dist = dist
+	if closest_tile == null:
+		push_error("Tried to add a unit placement, but there are no tiles at its coordinates for it to sit on. (%d,%d,%.2f)" % [placement_data.x, placement_data.y, placement_data.height])
+		placement_data.queue_free()
+		return
+	placement_data.height = closest_tile.h
+	var existing_placement := find_unit_placement(placement_data.x, placement_data.y, placement_data.height)
+	if existing_placement != placement_data:
+		if existing_placement:
+			delete_unit_placement(existing_placement.x, existing_placement.y, existing_placement.height)
+		unit_placements_node.add_child(placement_data)
+
+func find_unit_placement(x:int, y:int, height:float) -> MapUnitPosition:
+	for node in unit_placements_node.get_children():
+		if node.x == x and node.y == y and abs(node.height - height) < height_increment:
+			return node
+	return null
+
+func delete_unit_placement(x:int, y:int, height:float) -> void:
+	for node in unit_placements_node.get_children():
+		if node.x == x and node.y == y and abs(node.height - height) < height_increment:
+			unit_placements_node.remove_child(node)
+			node.queue_free()
 
 func render(height_map:Array):
 	clear()

@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://brsembpphkk8l"]
+
+[ext_resource type="Script" uid="uid://cv1oeynl2057" path="res://map/unit/MapUnitPosition.gd" id="1_tlv25"]
+[ext_resource type="Material" uid="uid://df41kkqd6vcf6" path="res://assets/tiles/hover_material.tres" id="2_6yu08"]
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_tlv25"]
+material = ExtResource("2_6yu08")
+top_radius = 0.2
+bottom_radius = 0.4
+height = 0.5
+
+[node name="MapUnitPosition" type="Node3D"]
+script = ExtResource("1_tlv25")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2502321, 0)
+mesh = SubResource("CylinderMesh_tlv25")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6834823, 0)
+billboard = 1
+text = "Player, Enemy, Ally, And Other Stuff"
+autowrap_mode = 2

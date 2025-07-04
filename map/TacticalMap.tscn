@@ -10,3 +10,5 @@ side_overlay_material = ExtResource("2_l804v")
 [node name="Tiles" type="Node3D" parent="."]
 
 [node name="Walls" type="Node3D" parent="."]
+
+[node name="UnitPlacements" type="Node3D" parent="."]

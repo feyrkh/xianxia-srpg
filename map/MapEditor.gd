@@ -17,20 +17,27 @@ class_name MapEditor
 @onready var load_file_name: OptionButton = find_child("LoadFileName")
 
 @onready var terrain_edit_input: TerrainEditInput = find_child("TerrainEditInput")
+@onready var unit_placement_edit_input: UnitPlacementEditInputController = find_child("UnitPlacementEditInput")
+@onready var all_input_controllers:Array[TileBasedInputController] = [terrain_edit_input, unit_placement_edit_input]
 
-var all_input_controllers:Array[TileBasedInputController]
+@onready var sidebar_tab_container: TabContainer = find_child("SidebarTabContainer")
+var terrain_tab_idx:int
+var units_tab_idx:int
+
 var cur_input_controller:TileBasedInputController:
 	set(v):
 		if cur_input_controller != v:
 			if cur_input_controller != null:
 				cur_input_controller.on_leave_mode()
+				on_leave_input_mode(cur_input_controller)
 			cur_input_controller = v
 			cur_input_controller.on_enter_mode()
+			on_enter_input_mode(cur_input_controller)
 
 var lock_clicks = 0
 
 func _ready() -> void:
-	all_input_controllers = [terrain_edit_input]
+	map.edit_mode = true
 	cur_input_controller = terrain_edit_input
 	terrain_edit_input.on_cursor_position_updated.connect(on_terrain_edit_cursor_position_updated)
 	terrain_edit_input.selected_terrain_updated.connect(on_selected_terrain_updated)
@@ -38,6 +45,8 @@ func _ready() -> void:
 	terrain_edit_input.cursor_height_updated.connect(on_cursor_height_updated)
 	terrain_edit_input.cursor_mode_updated.connect(on_terrain_edit_cursor_mode_updated)
 	terrain_edit_input.cursor_drag_area_updated.connect(on_cursor_drag_area_updated)
+	unit_placement_edit_input.add_unit_position.connect(on_add_unit_position)
+	unit_placement_edit_input.remove_unit_position.connect(on_remove_unit_position)
 	map.render([[1]])
 	update_cursor_text()
 	on_selected_terrain_updated(terrain_edit_input.selected_terrain)
@@ -50,6 +59,21 @@ func _ready() -> void:
 	EventBus.tile_unhovered.connect(on_tile_unhovered)
 	origin_plane.cell_left_clicked.connect(on_cell_left_click)
 	origin_plane.cell_right_clicked.connect(on_cell_right_click)
+	terrain_tab_idx = sidebar_tab_container.find_child("Terrain").get_index()
+	units_tab_idx = sidebar_tab_container.find_child("Units").get_index()
+
+func on_enter_input_mode(mode:InputController) -> void:
+	if mode == terrain_edit_input:
+		edit_floor.visible = true
+		edit_ceiling.visible = true
+		edit_tracer.visible = true
+	
+func on_leave_input_mode(mode:InputController) -> void:
+	if mode == terrain_edit_input:
+		edit_floor.visible = false
+		edit_ceiling.visible = false
+		edit_tracer.visible = false
+		
 
 func on_terrain_edit_cursor_position_updated(pos:Vector2i) -> void:
 	edit_floor.position.x = pos.x
@@ -228,3 +252,14 @@ func on_tile_hovered(t:MapTile) -> void:
 
 func on_tile_unhovered(t:MapTile) -> void:
 	cur_input_controller.on_tile_unhovered(t)
+
+func _on_sidebar_tab_container_tab_changed(tab:  int) -> void:
+	match tab:
+		terrain_tab_idx: cur_input_controller = terrain_edit_input
+		units_tab_idx: cur_input_controller = unit_placement_edit_input
+
+func on_add_unit_position(node:MapUnitPosition) -> void:
+	map.add_unit_placement(node)
+	
+func on_remove_unit_position(x:int, y:int, height:float) -> void:
+	map.delete_unit_placement(x, y, height)

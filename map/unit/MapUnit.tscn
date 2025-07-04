@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://d26anq5b3cuhg"]
+[gd_scene load_steps=3 format=3 uid="uid://d26anq5b3cuhg"]
 
 [ext_resource type="Texture2D" uid="uid://b6epxp0fouv1c" path="res://assets/sprites/placeholders.png" id="1_anics"]
+[ext_resource type="Script" uid="uid://8nubm41xtjg3" path="res://map/unit/MapUnit.gd" id="1_hiemr"]
 
 [node name="MapUnit" type="Node3D"]
+script = ExtResource("1_hiemr")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8297483, 0)

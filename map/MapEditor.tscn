@@ -1,12 +1,14 @@
-[gd_scene load_steps=19 format=3 uid="uid://chuakfuuq3q0k"]
+[gd_scene load_steps=21 format=3 uid="uid://chuakfuuq3q0k"]
 
 [ext_resource type="Script" uid="uid://drx0xf7457mfn" path="res://map/MapEditor.gd" id="1_5fycq"]
 [ext_resource type="Script" uid="uid://e34l0e754x65" path="res://map/input/TerrainEditInput.gd" id="2_crhw4"]
 [ext_resource type="PackedScene" uid="uid://1ujfoei6r514" path="res://camera/camera.tscn" id="2_uy6vd"]
 [ext_resource type="PackedScene" uid="uid://bjffcfnyeiitd" path="res://map/TacticalMap.tscn" id="3_amtie"]
+[ext_resource type="Script" uid="uid://bfcabhlf367ve" path="res://map/input/UnitPlacementEditInputController.gd" id="3_pcbcf"]
 [ext_resource type="Script" uid="uid://bytwspu3gfs28" path="res://map/EditorHeightPlane.gd" id="4_hb4as"]
 [ext_resource type="Shader" uid="uid://bw0iuvlyiv4xn" path="res://assets/shader/translucent_grid.gdshader" id="5_hc7va"]
 [ext_resource type="Script" uid="uid://bjhfxgsu130d" path="res://map/CursorTracker.gd" id="6_ama3a"]
+[ext_resource type="Script" uid="uid://bk2kf0a40d74q" path="res://map/unit/UnitTypeList.gd" id="9_0w314"]
 
 [sub_resource type="Environment" id="Environment_fos0i"]
 ambient_light_source = 2
@@ -109,6 +111,9 @@ script = ExtResource("1_5fycq")
 [node name="TerrainEditInput" type="Node" parent="."]
 script = ExtResource("2_crhw4")
 
+[node name="UnitPlacementEditInput" type="Node" parent="."]
+script = ExtResource("3_pcbcf")
+
 [node name="CameraRig" parent="." instance=ExtResource("2_uy6vd")]
 transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1.0000001, 0, 0, -1.5795822)
 
@@ -169,38 +174,38 @@ anchor_bottom = 1.0
 offset_right = 193.0
 grow_vertical = 2
 
-[node name="TabContainer" type="TabContainer" parent="Sidebar"]
+[node name="SidebarTabContainer" type="TabContainer" parent="Sidebar"]
 layout_mode = 2
 current_tab = 0
 
-[node name="Terrain" type="VBoxContainer" parent="Sidebar/TabContainer"]
+[node name="Terrain" type="VBoxContainer" parent="Sidebar/SidebarTabContainer"]
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="Label" type="Label" parent="Sidebar/TabContainer/Terrain"]
+[node name="Label" type="Label" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 text = "Move cursor ceiling: R/F
 Move cursor floor: Shift+R/F
 Move cursor: Ctrl+R/F"
 
-[node name="CursorDetails" type="Label" parent="Sidebar/TabContainer/Terrain"]
+[node name="CursorDetails" type="Label" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Sidebar/TabContainer/Terrain"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 
-[node name="PrevTerrain" type="Button" parent="Sidebar/TabContainer/Terrain/HBoxContainer"]
+[node name="PrevTerrain" type="Button" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer"]
 layout_mode = 2
 text = "<"
 
-[node name="TerrainTexturePreview" type="TextureRect" parent="Sidebar/TabContainer/Terrain/HBoxContainer"]
+[node name="TerrainTexturePreview" type="TextureRect" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer"]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 expand_mode = 2
 
-[node name="TerrainTexturePreview2" type="TextureRect" parent="Sidebar/TabContainer/Terrain/HBoxContainer"]
+[node name="TerrainTexturePreview2" type="TextureRect" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer"]
 modulate = Color(0.851, 0.851, 0.851, 1)
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
@@ -208,115 +213,140 @@ size_flags_horizontal = 0
 size_flags_vertical = 0
 expand_mode = 2
 
-[node name="NextTerrain" type="Button" parent="Sidebar/TabContainer/Terrain/HBoxContainer"]
+[node name="NextTerrain" type="Button" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer"]
 layout_mode = 2
 text = ">"
 
-[node name="TerrainDetails" type="Label" parent="Sidebar/TabContainer/Terrain"]
+[node name="TerrainDetails" type="Label" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="Sidebar/TabContainer/Terrain"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 
-[node name="NextMode" type="Button" parent="Sidebar/TabContainer/Terrain/HBoxContainer2"]
+[node name="NextMode" type="Button" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer2"]
 layout_mode = 2
 text = "Mode: "
 
-[node name="ModeLabel" type="Label" parent="Sidebar/TabContainer/Terrain/HBoxContainer2"]
+[node name="ModeLabel" type="Label" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer2"]
 layout_mode = 2
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="Sidebar/TabContainer/Terrain"]
+[node name="HBoxContainer3" type="HBoxContainer" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 
-[node name="SaveFileName" type="LineEdit" parent="Sidebar/TabContainer/Terrain/HBoxContainer3"]
+[node name="SaveFileName" type="LineEdit" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer3"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "tmp"
 
-[node name="Save" type="Button" parent="Sidebar/TabContainer/Terrain/HBoxContainer3"]
+[node name="Save" type="Button" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer3"]
 layout_mode = 2
 text = "Save"
 
-[node name="HBoxContainer4" type="HBoxContainer" parent="Sidebar/TabContainer/Terrain"]
+[node name="HBoxContainer4" type="HBoxContainer" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 
-[node name="LoadFileName" type="OptionButton" parent="Sidebar/TabContainer/Terrain/HBoxContainer4"]
+[node name="LoadFileName" type="OptionButton" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer4"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Load" type="Button" parent="Sidebar/TabContainer/Terrain/HBoxContainer4"]
+[node name="Load" type="Button" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer4"]
 layout_mode = 2
 text = "Load"
 
-[node name="Label2" type="Label" parent="Sidebar/TabContainer/Terrain"]
+[node name="Label2" type="Label" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 text = "Map Generation Settings"
 
-[node name="HBoxContainer6" type="GridContainer" parent="Sidebar/TabContainer/Terrain"]
+[node name="HBoxContainer6" type="GridContainer" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 columns = 2
 
-[node name="Label" type="Label" parent="Sidebar/TabContainer/Terrain/HBoxContainer6"]
+[node name="Label" type="Label" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer6"]
 layout_mode = 2
 text = "Frequency"
 
-[node name="GenFrequency" type="LineEdit" parent="Sidebar/TabContainer/Terrain/HBoxContainer6"]
+[node name="GenFrequency" type="LineEdit" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer6"]
 layout_mode = 2
 text = "0.2"
 
-[node name="Label2" type="Label" parent="Sidebar/TabContainer/Terrain/HBoxContainer6"]
+[node name="Label2" type="Label" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer6"]
 layout_mode = 2
 text = "Octaves"
 
-[node name="GenOctaves" type="SpinBox" parent="Sidebar/TabContainer/Terrain/HBoxContainer6"]
+[node name="GenOctaves" type="SpinBox" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer6"]
 layout_mode = 2
 
-[node name="Label3" type="Label" parent="Sidebar/TabContainer/Terrain/HBoxContainer6"]
+[node name="Label3" type="Label" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer6"]
 layout_mode = 2
 text = "Lacunarity"
 
-[node name="GenLacuna" type="LineEdit" parent="Sidebar/TabContainer/Terrain/HBoxContainer6"]
+[node name="GenLacuna" type="LineEdit" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer6"]
 layout_mode = 2
 text = "0.9"
 
-[node name="Label4" type="Label" parent="Sidebar/TabContainer/Terrain/HBoxContainer6"]
+[node name="Label4" type="Label" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer6"]
 layout_mode = 2
 text = "Seed"
 
-[node name="GenSeed" type="LineEdit" parent="Sidebar/TabContainer/Terrain/HBoxContainer6"]
+[node name="GenSeed" type="LineEdit" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer6"]
 layout_mode = 2
 text = "default"
 
-[node name="HBoxContainer5" type="HBoxContainer" parent="Sidebar/TabContainer/Terrain"]
+[node name="HBoxContainer5" type="HBoxContainer" parent="Sidebar/SidebarTabContainer/Terrain"]
 layout_mode = 2
 
-[node name="GenWidth" type="LineEdit" parent="Sidebar/TabContainer/Terrain/HBoxContainer5"]
+[node name="GenWidth" type="LineEdit" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer5"]
 layout_mode = 2
 text = "20"
 
-[node name="Label" type="Label" parent="Sidebar/TabContainer/Terrain/HBoxContainer5"]
+[node name="Label" type="Label" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer5"]
 layout_mode = 2
 text = "x"
 
-[node name="GenHeight" type="LineEdit" parent="Sidebar/TabContainer/Terrain/HBoxContainer5"]
+[node name="GenHeight" type="LineEdit" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer5"]
 layout_mode = 2
 text = "20"
 
-[node name="GenerateButton" type="Button" parent="Sidebar/TabContainer/Terrain/HBoxContainer5"]
+[node name="GenerateButton" type="Button" parent="Sidebar/SidebarTabContainer/Terrain/HBoxContainer5"]
 layout_mode = 2
 text = "Generate"
 
+[node name="Units" type="VBoxContainer" parent="Sidebar/SidebarTabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="Label" type="Label" parent="Sidebar/SidebarTabContainer/Units"]
+layout_mode = 2
+text = "Squad Number"
+
+[node name="UnitPlacementSquadNumber" type="SpinBox" parent="Sidebar/SidebarTabContainer/Units"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="Sidebar/SidebarTabContainer/Units"]
+layout_mode = 2
+text = "Allowed Unit Types"
+
+[node name="UnitPlacementTypeList" type="ItemList" parent="Sidebar/SidebarTabContainer/Units"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 2
+script = ExtResource("9_0w314")
+
 [node name="CursorBox" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("BoxMesh_crhw4")
 
 [node name="CursorBoxLabel" type="Label3D" parent="CursorBox"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35935128, 0.3497212)
 billboard = 1
 
-[connection signal="pressed" from="Sidebar/TabContainer/Terrain/HBoxContainer/PrevTerrain" to="TerrainEditInput" method="_on_prev_terrain_pressed"]
-[connection signal="pressed" from="Sidebar/TabContainer/Terrain/HBoxContainer/NextTerrain" to="TerrainEditInput" method="_on_next_terrain_pressed"]
-[connection signal="pressed" from="Sidebar/TabContainer/Terrain/HBoxContainer2/NextMode" to="TerrainEditInput" method="_on_next_mode_pressed"]
-[connection signal="pressed" from="Sidebar/TabContainer/Terrain/HBoxContainer3/Save" to="." method="_on_save_pressed"]
-[connection signal="focus_entered" from="Sidebar/TabContainer/Terrain/HBoxContainer4/LoadFileName" to="." method="_on_load_file_name_focus_entered"]
-[connection signal="pressed" from="Sidebar/TabContainer/Terrain/HBoxContainer4/Load" to="." method="_on_load_pressed"]
-[connection signal="pressed" from="Sidebar/TabContainer/Terrain/HBoxContainer5/GenerateButton" to="." method="_on_generate_button_pressed"]
+[connection signal="tab_changed" from="Sidebar/SidebarTabContainer" to="." method="_on_sidebar_tab_container_tab_changed"]
+[connection signal="pressed" from="Sidebar/SidebarTabContainer/Terrain/HBoxContainer/PrevTerrain" to="TerrainEditInput" method="_on_prev_terrain_pressed"]
+[connection signal="pressed" from="Sidebar/SidebarTabContainer/Terrain/HBoxContainer/NextTerrain" to="TerrainEditInput" method="_on_next_terrain_pressed"]
+[connection signal="pressed" from="Sidebar/SidebarTabContainer/Terrain/HBoxContainer2/NextMode" to="TerrainEditInput" method="_on_next_mode_pressed"]
+[connection signal="pressed" from="Sidebar/SidebarTabContainer/Terrain/HBoxContainer3/Save" to="." method="_on_save_pressed"]
+[connection signal="focus_entered" from="Sidebar/SidebarTabContainer/Terrain/HBoxContainer4/LoadFileName" to="." method="_on_load_file_name_focus_entered"]
+[connection signal="pressed" from="Sidebar/SidebarTabContainer/Terrain/HBoxContainer4/Load" to="." method="_on_load_pressed"]
+[connection signal="pressed" from="Sidebar/SidebarTabContainer/Terrain/HBoxContainer5/GenerateButton" to="." method="_on_generate_button_pressed"]

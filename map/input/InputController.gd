@@ -8,5 +8,8 @@ func on_leave_mode() -> void:
 func on_enter_mode() -> void:
 	pass
 
+func process_frame(_delta:float) -> void:
+	pass
+
 abstract func on_input_event_key(event:InputEventKey) -> void
 abstract func on_input_event_mouse_button(event:InputEventMouseButton) -> void
